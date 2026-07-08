@@ -54,6 +54,8 @@ npx wrangler secret put ADMIN_TOKEN
 ```
 
 Use the admin token to manage Basic Auth accounts. See `docs/auth.md`.
+The index is private by default. Set `[vars].PUBLIC_INDEX = "true"` in
+`cloudflare/wrangler.toml` only if anonymous reads should be allowed.
 
 ## R2 S3 credentials
 

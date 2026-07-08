@@ -10,6 +10,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const queueName = options.queue ?? process.env.R2_QUEUE;
   const compatibilityDate =
     options["compatibility-date"] ?? process.env.COMPATIBILITY_DATE ?? "2026-07-08";
+  const publicIndex = options["public-index"] ?? process.env.PUBLIC_INDEX ?? "false";
 
   if (!workerName) fail("Missing worker name. Pass --worker-name or set WORKER_NAME.");
   if (!bucketName) fail("Missing bucket. Pass --bucket or set R2_BUCKET.");
@@ -27,6 +28,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       bucketName,
       queueName,
       compatibilityDate,
+      publicIndex,
     }),
     "utf8",
   );
@@ -38,10 +40,14 @@ export function renderWranglerConfig({
   bucketName,
   queueName,
   compatibilityDate,
+  publicIndex = "false",
 }) {
   return `name = "${escapeToml(workerName)}"
 main = "src/public-worker.ts"
 compatibility_date = "${escapeToml(compatibilityDate)}"
+
+[vars]
+PUBLIC_INDEX = "${escapeToml(publicIndex)}"
 
 [[r2_buckets]]
 binding = "INDEX_BUCKET"

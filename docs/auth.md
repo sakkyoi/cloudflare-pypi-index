@@ -3,7 +3,8 @@
 Cloudflare PyPI Index can protect `/simple/*` and `/packages/*` with Basic Auth.
 The admin API remains protected by `ADMIN_TOKEN`.
 
-The package index is public until at least one account exists.
+The package index is private by default. `/simple/*` and `/packages/*` require
+Basic Auth unless `PUBLIC_INDEX = "true"` is configured.
 
 ## Create an account
 
@@ -49,6 +50,24 @@ pip install --index-url https://ci:<TOKEN>@packages.example.com/simple/ my-packa
 
 Do not commit tokens in config files. Use CI secrets when constructing package
 index URLs.
+
+## Public index mode
+
+To allow anonymous reads, set:
+
+```toml
+[vars]
+PUBLIC_INDEX = "true"
+```
+
+or with the GitHub Action:
+
+```yaml
+with:
+  public-index: "true"
+```
+
+Admin endpoints remain protected by `ADMIN_TOKEN`.
 
 ## List accounts
 

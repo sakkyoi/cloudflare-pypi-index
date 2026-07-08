@@ -2,6 +2,9 @@ name = "cloudflare-pypi-index"
 main = "src/public-worker.ts"
 compatibility_date = "2026-07-08"
 
+[vars]
+PUBLIC_INDEX = "false"
+
 [[r2_buckets]]
 binding = "INDEX_BUCKET"
 bucket_name = "your-r2-bucket-name"

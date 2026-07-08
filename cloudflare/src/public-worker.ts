@@ -107,9 +107,7 @@ async function authAdminRequest(request: Request, env: Env, url: URL): Promise<R
 }
 
 async function authorizePackageRequest(request: Request, env: Env): Promise<Response | null> {
-  const enabled = await authStore(env).fetch("https://auth-store/enabled");
-  const enabledBody = await enabled.json<{ enabled?: boolean }>().catch(() => ({ enabled: true }));
-  if (!enabledBody.enabled) return null;
+  if (env.PUBLIC_INDEX === "true") return null;
 
   const credentials = basicCredentials(request.headers.get("authorization"));
   if (!credentials) return unauthorized();

@@ -28,6 +28,10 @@ inputs:
     description: Deploy Worker infra before publishing.
     required: false
     default: "true"
+  public-index:
+    description: Allow anonymous reads of /simple/* and /packages/*.
+    required: false
+    default: "false"
   admin-token:
     description: Optional ADMIN_TOKEN secret for manual rebuild endpoint.
     required: false
@@ -89,6 +93,7 @@ runs:
           --bucket "${{ inputs.bucket }}" \
           --queue "$queue_name" \
           --compatibility-date "${{ inputs.compatibility-date }}" \
+          --public-index "${{ inputs.public-index }}" \
           --output "${GITHUB_ACTION_PATH}/../../cloudflare/wrangler.toml"
 
         if [ -n "$ADMIN_TOKEN" ]; then

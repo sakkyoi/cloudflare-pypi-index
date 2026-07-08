@@ -3,6 +3,7 @@ export interface Env {
   PROJECT_INDEX: DurableObjectNamespace;
   AUTH_STORE: DurableObjectNamespace;
   ADMIN_TOKEN?: string;
+  PUBLIC_INDEX?: string;
 }
 
 export interface R2EventBody {

@@ -10,9 +10,11 @@ describe("renderWranglerConfig", () => {
       bucketName: "nxlicense-python",
       queueName: "nxlicense-python-event-queue",
       compatibilityDate: "2026-07-08",
+      publicIndex: "false",
     });
 
     assert.match(config, /^name = "nxlicense-python"/m);
+    assert.match(config, /PUBLIC_INDEX = "false"/);
     assert.match(config, /bucket_name = "nxlicense-python"/);
     assert.match(config, /queue = "nxlicense-python-event-queue"/);
     assert.match(config, /binding = "INDEX_BUCKET"/);

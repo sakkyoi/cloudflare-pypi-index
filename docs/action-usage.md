@@ -33,6 +33,8 @@ jobs:
           endpoint-url: https://${{ secrets.CF_ACCOUNT_ID }}.r2.cloudflarestorage.com
           verify-index-url: https://packages.example.com/simple/
           admin-token: ${{ secrets.PACKAGE_INDEX_ADMIN_TOKEN }}
+          # Optional. Defaults to "false".
+          public-index: "false"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
@@ -42,6 +44,9 @@ jobs:
 The action deploys infra by default. It creates `cloudflare/wrangler.toml` from
 inputs, ensures the R2 bucket and Queue exist, deploys the Worker, ensures R2
 notifications, then publishes distributions to R2.
+
+The index is private by default. Set `public-index: "true"` only when anonymous
+reads should be allowed.
 
 Required secrets:
 

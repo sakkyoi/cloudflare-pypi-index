@@ -59,6 +59,9 @@ By default the action deploys the Worker infra first: it renders
 Worker, and ensures R2 event notifications exist. Set `deploy-infra: "false"` to
 publish only.
 
+The index is private by default. Set `public-index: "true"` only if anonymous
+reads of `/simple/*` and `/packages/*` should be allowed.
+
 ## Worker deployment
 
 Copy the example config first:
@@ -139,8 +142,7 @@ curl -X POST \
 
 ## Basic Auth
 
-The index is public until at least one package account is created. Create an
-account with the admin API:
+The index is private by default. Create an account with the admin API:
 
 ```bash
 curl -X POST \
@@ -179,6 +181,19 @@ curl -H "Authorization: Bearer <ADMIN_TOKEN>" \
 curl -X DELETE \
   -H "Authorization: Bearer <ADMIN_TOKEN>" \
   https://<WORKER_HOST>/admin/auth/accounts/ci
+```
+
+To make the index public, set:
+
+```toml
+[vars]
+PUBLIC_INDEX = "true"
+```
+
+or pass this action input:
+
+```yaml
+public-index: "true"
 ```
 
 ## End-to-end publish

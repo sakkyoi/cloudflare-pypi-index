@@ -17,6 +17,10 @@ Deploy local project infrastructure:
 npm --prefix cloudflare run deploy
 ```
 
+The generated index is private by default. Create a package account before using
+`uv add` or configure `[vars].PUBLIC_INDEX = "true"` in
+`cloudflare/wrangler.toml` for anonymous reads.
+
 Validate distributions:
 
 ```bash
