@@ -1,0 +1,12 @@
+[publisher]
+dist-dir = "dist"
+project = "my-package"
+bucket = "python-index"
+endpoint-url = "https://<ACCOUNT_ID>.r2.cloudflarestorage.com"
+package-prefix = "packages"
+fail-on-existing = true
+
+[cloudflare]
+worker-url = "https://packages.example.com"
+simple-url = "https://packages.example.com/simple/"
+queue = "python-index-events"

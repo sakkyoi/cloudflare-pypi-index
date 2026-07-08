@@ -1,0 +1,20 @@
+{
+  "name": "cloudflare-pypi-index-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "node scripts/ensure-resources.mjs && wrangler deploy && node scripts/setup-notifications.mjs create --skip-missing",
+    "dev": "wrangler dev",
+    "notifications:create": "node scripts/setup-notifications.mjs create",
+    "notifications:delete": "node scripts/setup-notifications.mjs delete",
+    "notifications:list": "node scripts/setup-notifications.mjs list",
+    "render-config": "node scripts/render-wrangler-config.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260708.1",
+    "typescript": "^5.5.0",
+    "wrangler": "^4.0.0"
+  }
+}

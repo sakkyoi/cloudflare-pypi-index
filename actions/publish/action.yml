@@ -1,0 +1,147 @@
+name: Publish Python distributions to R2
+description: Build-system agnostic publisher for an R2-backed Python simple index.
+
+inputs:
+  dist-dir:
+    description: Directory containing wheel and sdist files.
+    required: false
+    default: dist
+  project:
+    description: Normalized Python project name.
+    required: true
+  bucket:
+    description: Cloudflare R2 bucket name.
+    required: true
+  worker-name:
+    description: Cloudflare Worker name. Defaults to project.
+    required: false
+    default: ""
+  queue:
+    description: Cloudflare Queue name. Defaults to <project>-event-queue.
+    required: false
+    default: ""
+  compatibility-date:
+    description: Cloudflare Worker compatibility date.
+    required: false
+    default: "2026-07-08"
+  deploy-infra:
+    description: Deploy Worker infra before publishing.
+    required: false
+    default: "true"
+  admin-token:
+    description: Optional ADMIN_TOKEN secret for manual rebuild endpoint.
+    required: false
+    default: ""
+  endpoint-url:
+    description: R2 S3-compatible endpoint URL.
+    required: true
+  package-prefix:
+    description: R2 prefix used for package files.
+    required: false
+    default: packages
+  requires-python:
+    description: Optional Requires-Python metadata for every uploaded file.
+    required: false
+    default: ""
+  access-key-id:
+    description: R2 S3 Access Key ID. Falls back to AWS_ACCESS_KEY_ID.
+    required: false
+    default: ""
+  secret-access-key:
+    description: R2 S3 Secret Access Key. Falls back to AWS_SECRET_ACCESS_KEY.
+    required: false
+    default: ""
+  allow-existing:
+    description: Skip existing objects instead of failing.
+    required: false
+    default: "false"
+  dry-run:
+    description: Print uploads without sending objects to R2.
+    required: false
+    default: "false"
+  verify-index-url:
+    description: Optional Simple API base URL to verify after upload.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Deploy package index infra
+      if: inputs.deploy-infra == 'true'
+      shell: bash
+      env:
+        ADMIN_TOKEN: ${{ inputs.admin-token }}
+      run: |
+        set -euo pipefail
+        worker_name="${{ inputs.worker-name }}"
+        queue_name="${{ inputs.queue }}"
+        if [ -z "$worker_name" ]; then
+          worker_name="${{ inputs.project }}"
+        fi
+        if [ -z "$queue_name" ]; then
+          queue_name="${{ inputs.project }}-event-queue"
+        fi
+
+        npm --prefix "${GITHUB_ACTION_PATH}/../../cloudflare" ci
+        node "${GITHUB_ACTION_PATH}/../../cloudflare/scripts/render-wrangler-config.mjs" \
+          --worker-name "$worker_name" \
+          --bucket "${{ inputs.bucket }}" \
+          --queue "$queue_name" \
+          --compatibility-date "${{ inputs.compatibility-date }}" \
+          --output "${GITHUB_ACTION_PATH}/../../cloudflare/wrangler.toml"
+
+        if [ -n "$ADMIN_TOKEN" ]; then
+          printf '%s' "$ADMIN_TOKEN" | npm --prefix "${GITHUB_ACTION_PATH}/../../cloudflare" exec -- wrangler secret put ADMIN_TOKEN
+        fi
+
+        npm --prefix "${GITHUB_ACTION_PATH}/../../cloudflare" run deploy
+
+    - name: Install publisher
+      shell: bash
+      run: python -m pip install "${GITHUB_ACTION_PATH}/../.."
+
+    - name: Publish distributions
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -n "${{ inputs.access-key-id }}" ]; then
+          export AWS_ACCESS_KEY_ID="${{ inputs.access-key-id }}"
+        fi
+        if [ -n "${{ inputs.secret-access-key }}" ]; then
+          export AWS_SECRET_ACCESS_KEY="${{ inputs.secret-access-key }}"
+        fi
+        args=(
+          publish
+          --dist-dir "${{ inputs.dist-dir }}"
+          --project "${{ inputs.project }}"
+          --bucket "${{ inputs.bucket }}"
+          --endpoint-url "${{ inputs.endpoint-url }}"
+          --package-prefix "${{ inputs.package-prefix }}"
+        )
+        if [ -n "${{ inputs.requires-python }}" ]; then
+          args+=(--requires-python "${{ inputs.requires-python }}")
+        fi
+        if [ "${{ inputs.allow-existing }}" = "true" ]; then
+          args+=(--allow-existing)
+        fi
+        if [ "${{ inputs.dry-run }}" = "true" ]; then
+          args+=(--dry-run)
+        fi
+        cloudflare-pypi "${args[@]}"
+
+    - name: Verify package index
+      if: inputs.verify-index-url != ''
+      shell: bash
+      run: |
+        set -euo pipefail
+        for file in "${{ inputs.dist-dir }}"/*; do
+          case "$file" in
+            *.whl|*.tar.gz|*.zip)
+              cloudflare-pypi verify \
+                --project "${{ inputs.project }}" \
+                --index-url "${{ inputs.verify-index-url }}" \
+                --filename "$(basename "$file")"
+              ;;
+          esac
+        done
