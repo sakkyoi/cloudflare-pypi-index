@@ -40,8 +40,21 @@ jobs:
 ```
 
 The action deploys infra by default. It creates `cloudflare/wrangler.toml` from
-inputs, ensures the Queue exists, deploys the Worker, ensures R2 notifications,
-then publishes distributions to R2.
+inputs, ensures the R2 bucket and Queue exist, deploys the Worker, ensures R2
+notifications, then publishes distributions to R2.
+
+Required secrets:
+
+```text
+CLOUDFLARE_API_TOKEN
+R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY
+PACKAGE_INDEX_ADMIN_TOKEN
+```
+
+`CLOUDFLARE_API_TOKEN` must be able to deploy Workers, manage Queues, manage R2
+buckets, manage R2 bucket notifications, and write Worker secrets. The R2 access
+key pair is used only by the publisher upload step.
 
 Use `allow-existing: "true"` only for idempotent reruns where skipping existing
 objects is acceptable. The default fails on existing objects to avoid silently

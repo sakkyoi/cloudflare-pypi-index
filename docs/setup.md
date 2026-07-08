@@ -2,40 +2,33 @@
 
 ## Cloudflare resources
 
-Create the bucket:
-
-```bash
-npx wrangler r2 bucket create python-index
-```
-
-Create the Queue:
-
-```bash
-npx wrangler queues create python-index-events
-```
-
 Deploy the Worker scaffold:
 
 ```bash
-cp wrangler.example.toml wrangler.toml
+node cloudflare/scripts/render-wrangler-config.mjs \
+  --worker-name your-worker-name \
+  --bucket your-r2-bucket-name \
+  --queue your-r2-event-queue-name
+
 npm --prefix cloudflare run deploy
 ```
 
-Edit `wrangler.toml` before deployment:
+The render command writes `cloudflare/wrangler.toml`. Keep these binding names
+unchanged if you edit that file manually:
 
 ```toml
-name = "your-worker-name"
-
 [[r2_buckets]]
 binding = "INDEX_BUCKET"
-bucket_name = "your-r2-bucket-name"
 
-[[queues.consumers]]
-queue = "your-r2-event-queue-name"
+[[durable_objects.bindings]]
+name = "PROJECT_INDEX"
+class_name = "ProjectIndexDO"
 ```
 
-`npm run deploy` also ensures R2 event notifications exist. To create them
-separately:
+`npm run deploy` ensures the configured R2 bucket and Queue exist, deploys the
+Worker, and ensures R2 event notifications exist.
+
+To create notifications separately:
 
 ```bash
 npm --prefix cloudflare run notifications:create

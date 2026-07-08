@@ -5,7 +5,16 @@ Install for development:
 ```bash
 uv sync
 npm --prefix cloudflare install
-cp cloudflare/wrangler.example.toml cloudflare/wrangler.toml
+node cloudflare/scripts/render-wrangler-config.mjs \
+  --worker-name python-index \
+  --bucket python-index \
+  --queue python-index-event-queue
+```
+
+Deploy local project infrastructure:
+
+```bash
+npm --prefix cloudflare run deploy
 ```
 
 Validate distributions:

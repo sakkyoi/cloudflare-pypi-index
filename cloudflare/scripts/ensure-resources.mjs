@@ -6,8 +6,34 @@ const options = parseOptions(args);
 const config = readWranglerConfig(options.config);
 const dryRun = options["dry-run"] === true || process.env.DRY_RUN === "1";
 
+for (const bucket of config.buckets) {
+  ensureBucket(bucket);
+}
+
 for (const queue of config.queues) {
   ensureQueue(queue);
+}
+
+function ensureBucket(bucket) {
+  const list = runWrangler(["r2", "bucket", "list"], { allowFailure: true, dryRun });
+  if (dryRun) return;
+
+  const output = `${list.stdout ?? ""}\n${list.stderr ?? ""}`;
+  if (list.status === 0 && output.includes(bucket)) {
+    console.log(`R2 bucket exists: ${bucket}`);
+    return;
+  }
+
+  const created = runWrangler(["r2", "bucket", "create", bucket], { allowFailure: true });
+  const createOutput = `${created.stdout ?? ""}\n${created.stderr ?? ""}`;
+  if (created.status === 0 || createOutput.includes("already exists")) {
+    console.log(`R2 bucket ready: ${bucket}`);
+    return;
+  }
+
+  process.stdout.write(created.stdout ?? "");
+  process.stderr.write(created.stderr ?? "");
+  fail(`Failed to create R2 bucket: ${bucket}`);
 }
 
 function ensureQueue(queue) {

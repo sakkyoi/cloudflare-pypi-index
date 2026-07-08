@@ -55,9 +55,9 @@ AWS_SECRET_ACCESS_KEY=<R2_SECRET_ACCESS_KEY>
 ```
 
 By default the action deploys the Worker infra first: it renders
-`cloudflare/wrangler.toml`, ensures the Queue exists, deploys the Worker, and
-ensures R2 event notifications exist. Set `deploy-infra: "false"` to publish
-only.
+`cloudflare/wrangler.toml`, ensures the R2 bucket and Queue exist, deploys the
+Worker, and ensures R2 event notifications exist. Set `deploy-infra: "false"` to
+publish only.
 
 ## Worker deployment
 
@@ -87,13 +87,6 @@ npm --prefix cloudflare install
 npm --prefix cloudflare run typecheck
 ```
 
-Create the Queue if you want automatic index rebuilds from R2 events:
-
-```bash
-cd cloudflare
-npx wrangler queues create <QUEUE_NAME>
-```
-
 Set the admin token used by manual rebuild requests:
 
 ```bash
@@ -106,8 +99,9 @@ Deploy:
 npm --prefix cloudflare run deploy
 ```
 
-The deploy script ensures the configured Queue exists, deploys the Worker, and
-then ensures R2 event notifications exist. To create notifications separately:
+The deploy script ensures the configured R2 bucket and Queue exist, deploys the
+Worker, and then ensures R2 event notifications exist. To create notifications
+separately:
 
 ```bash
 npm --prefix cloudflare run notifications:create
