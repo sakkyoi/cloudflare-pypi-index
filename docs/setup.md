@@ -53,6 +53,8 @@ cd cloudflare
 npx wrangler secret put ADMIN_TOKEN
 ```
 
+Use the admin token to manage Basic Auth accounts. See `docs/auth.md`.
+
 ## R2 S3 credentials
 
 Create an R2 API token with Object Read & Write permission scoped to the bucket.

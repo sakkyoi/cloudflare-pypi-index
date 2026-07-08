@@ -1,6 +1,7 @@
 export interface Env {
   INDEX_BUCKET: R2Bucket;
   PROJECT_INDEX: DurableObjectNamespace;
+  AUTH_STORE: DurableObjectNamespace;
   ADMIN_TOKEN?: string;
 }
 

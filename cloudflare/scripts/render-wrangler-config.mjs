@@ -56,9 +56,17 @@ max_batch_timeout = 5
 name = "PROJECT_INDEX"
 class_name = "ProjectIndexDO"
 
+[[durable_objects.bindings]]
+name = "AUTH_STORE"
+class_name = "AuthStoreDO"
+
 [[migrations]]
-tag = "v1"
+tag = "create-project-index-do"
 new_sqlite_classes = ["ProjectIndexDO"]
+
+[[migrations]]
+tag = "create-auth-store-do"
+new_sqlite_classes = ["AuthStoreDO"]
 `;
 }
 

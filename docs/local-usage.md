@@ -62,3 +62,19 @@ curl -X POST \
   -H "Authorization: Bearer <ADMIN_TOKEN>" \
   https://packages.example.com/admin/rebuild/my-package
 ```
+
+Create a package account to enable Basic Auth:
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer <ADMIN_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"ci"}' \
+  https://packages.example.com/admin/auth/accounts
+```
+
+Use the returned token:
+
+```bash
+uv add my-package --index https://ci:<TOKEN>@packages.example.com/simple/
+```

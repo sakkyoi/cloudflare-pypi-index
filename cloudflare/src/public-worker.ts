@@ -1,8 +1,10 @@
 import { ProjectIndexDO } from "./project-index-do";
+import { AuthStoreDO } from "./auth-store-do";
 import { Env, parsePackageKey } from "./shared";
 import { handleQueue } from "./queue-consumer";
 
 export { ProjectIndexDO };
+export { AuthStoreDO };
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -10,6 +12,9 @@ export default {
 
     if (url.pathname.startsWith("/admin/rebuild/")) {
       return rebuildFromAdminRequest(request, env, url);
+    }
+    if (url.pathname.startsWith("/admin/auth/")) {
+      return authAdminRequest(request, env, url);
     }
 
     if (request.method !== "GET" && request.method !== "HEAD") {
@@ -23,6 +28,9 @@ export default {
     if (!key) {
       return new Response("Not Found", { status: 404 });
     }
+
+    const authResult = await authorizePackageRequest(request, env);
+    if (authResult) return authResult;
 
     const object = await env.INDEX_BUCKET.get(key, {
       onlyIf: request.headers,
@@ -85,6 +93,65 @@ async function rebuildFromAdminRequest(
   const id = env.PROJECT_INDEX.idFromName(project);
   const stub = env.PROJECT_INDEX.get(id);
   return stub.fetch(`https://internal/rebuild?project=${encodeURIComponent(project)}`);
+}
+
+async function authAdminRequest(request: Request, env: Env, url: URL): Promise<Response> {
+  const auth = request.headers.get("authorization");
+  if (!env.ADMIN_TOKEN || auth !== `Bearer ${env.ADMIN_TOKEN}`) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const stub = authStore(env);
+  const path = url.pathname.replace("/admin/auth", "");
+  return stub.fetch(new Request(`https://auth-store${path}`, request));
+}
+
+async function authorizePackageRequest(request: Request, env: Env): Promise<Response | null> {
+  const enabled = await authStore(env).fetch("https://auth-store/enabled");
+  const enabledBody = await enabled.json<{ enabled?: boolean }>().catch(() => ({ enabled: true }));
+  if (!enabledBody.enabled) return null;
+
+  const credentials = basicCredentials(request.headers.get("authorization"));
+  if (!credentials) return unauthorized();
+
+  const response = await authStore(env).fetch(
+    new Request("https://auth-store/verify", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(credentials),
+    }),
+  );
+  if (response.ok) return null;
+  return unauthorized();
+}
+
+function authStore(env: Env): DurableObjectStub {
+  const id = env.AUTH_STORE.idFromName("global");
+  return env.AUTH_STORE.get(id);
+}
+
+function basicCredentials(header: string | null): { username: string; token: string } | null {
+  if (!header?.startsWith("Basic ")) return null;
+  try {
+    const decoded = atob(header.slice("Basic ".length));
+    const separator = decoded.indexOf(":");
+    if (separator < 0) return null;
+    return {
+      username: decoded.slice(0, separator),
+      token: decoded.slice(separator + 1),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function unauthorized(): Response {
+  return new Response("Unauthorized", {
+    status: 401,
+    headers: {
+      "www-authenticate": 'Basic realm="Python package index"',
+    },
+  });
 }
 
 function cacheControlForKey(key: string): string {

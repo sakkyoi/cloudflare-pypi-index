@@ -137,6 +137,50 @@ curl -X POST \
   https://<WORKER_HOST>/admin/rebuild/<PROJECT_NAME>
 ```
 
+## Basic Auth
+
+The index is public until at least one package account is created. Create an
+account with the admin API:
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer <ADMIN_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"ci"}' \
+  https://<WORKER_HOST>/admin/auth/accounts
+```
+
+The response includes a generated token once. Store it securely:
+
+```json
+{
+  "name": "ci",
+  "token": "cfpi_...",
+  "tokenPrefix": "cfpi_..."
+}
+```
+
+`cfpi_...` tokens are package account tokens for Basic Auth. They are not
+Cloudflare API tokens or R2 S3 access keys.
+
+Use the account name as the Basic Auth username and the generated token as the
+password:
+
+```bash
+uv add <PROJECT_NAME> --index https://ci:<TOKEN>@<WORKER_HOST>/simple/
+```
+
+Manage accounts:
+
+```bash
+curl -H "Authorization: Bearer <ADMIN_TOKEN>" \
+  https://<WORKER_HOST>/admin/auth/accounts
+
+curl -X DELETE \
+  -H "Authorization: Bearer <ADMIN_TOKEN>" \
+  https://<WORKER_HOST>/admin/auth/accounts/ci
+```
+
 ## End-to-end publish
 
 Build and publish a package:

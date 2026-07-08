@@ -18,5 +18,9 @@ describe("renderWranglerConfig", () => {
     assert.match(config, /binding = "INDEX_BUCKET"/);
     assert.match(config, /name = "PROJECT_INDEX"/);
     assert.match(config, /class_name = "ProjectIndexDO"/);
+    assert.match(config, /name = "AUTH_STORE"/);
+    assert.match(config, /class_name = "AuthStoreDO"/);
+    assert.match(config, /tag = "create-project-index-do"/);
+    assert.match(config, /tag = "create-auth-store-do"/);
   });
 });
