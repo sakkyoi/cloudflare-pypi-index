@@ -5,7 +5,7 @@ description = "Publish Python distributions and host a Simple Repository API on 
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "boto3>=1.34",
+    "boto3>=1.43.58",
 ]
 
 [project.scripts]
